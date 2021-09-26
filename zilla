@@ -1,0 +1,37 @@
+#!/bin/bash
+
+case $1 in
+        -create)
+                case $2 in
+                        ubuntu)
+                                /usr/bin/debootstrap --variant=buildd focal /mnt/chroot/$3 http://archive.ubuntu.com/ubuntu/
+                                /usr/bin/cp /mnt/dist-data/ubuntu/sources.list /mnt/chroot/$3/etc/apt/sources.list
+                                /usr/bin/cp /mnt/dist-data/ubuntu/.bashrc /mnt/chroot/$3/root/.bashrc
+                                ;;
+                        alpine)
+                                echo "Add alpine implementation here"
+                                ;;
+                        arch)
+                                CHROOT=/mnt/chroot/$3
+                                /usr/bin/mkchroot $CHROOT base-devel
+                                /usr/bin/rm $3.lock
+                                /usr/bin/cp /mnt/dist-data/arch/.bashrc /mnt/chroot/$3/root/.bashrc
+                                /usr/bin/cp /mnt/dist-data/arch/pacman.conf /mnt/chroot/$3/etc/pacman.conf
+                                /usr/bin/cp /mnt/dist-data/arch/sudoers /mnt/chroot/$3/etc/sudoers
+                                /usr/bin/cp /mnt/dist-data/arch/.bash_profile /mnt/chroot/$3/root/.bash_profile
+                                cd /mnt/chroot/$3/usr/local/bin
+                                /usr/bin/wget https://raw.githubusercontent.com/FriedMicro/frost/main/frost
+                                /usr/bin/chmod +x frost
+                                ;;
+                esac
+                ;;
+        -enter)
+                cd /mnt/chroot/$2
+                /usr/bin/touch ./root/$3
+                /usr/bin/groot
+                /usr/bin/rm ./root/$3
+                ;;
+        *)
+                echo "-create <base> <name>, -enter <chroot name> <tmp file>"
+                ;;
+esac
