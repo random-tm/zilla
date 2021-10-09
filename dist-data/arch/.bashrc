@@ -12,10 +12,12 @@ UPGRADEFILE=/root/upgrade
 
 if test -f "$INITFILE"; then
     pacman-key --init
-    pacman-key --refresh-keys
+    pacman -Sy archlinux-keyring manjaro-keyring
     pacman-key --populate archlinux
+    pacman-key --populate archlinux manjaro
+    pacman-key --refresh-keys
     pacman -Syu
-    pacman -Sy --needed base-devel git wget yajl
+    pacman -Sy --needed base-devel git wget yajl iputils
     groupadd users
     groupadd wheel
     useradd -m neo
