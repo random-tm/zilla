@@ -14,7 +14,6 @@ case $1 in
                                 /usr/bin/cp /mnt/dist-data/ubuntu/.bashrc /mnt/chroot/$3/root/.bashrc
                                 ;;
                         alpine)
-                                echo "Add alpine implementation here"
                                 cd /mnt/chroot/
                                 sudo alpine-chroot-install -d /mnt/chroot/$3 -p build-base -p cmake
                                 ;;
