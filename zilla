@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Usage (temp_file is used so you can execute different commands automatically when entering chroot)
+# To create: zilla -create disto name
+# To enter most chroots: zilla -enter name temp_file
+# To enter chroots with special edge cases (ex Alpine): zilla -enter name temp_file distro
+
 case $1 in
         -create)
                 case $2 in
@@ -10,6 +15,8 @@ case $1 in
                                 ;;
                         alpine)
                                 echo "Add alpine implementation here"
+                                cd /mnt/chroot/
+                                sudo alpine-chroot-install -d /mnt/chroot/$3 -p build-base -p cmake
                                 ;;
                         arch)
                                 CHROOT=/mnt/chroot/$3
@@ -26,10 +33,17 @@ case $1 in
                 esac
                 ;;
         -enter)
-                cd /mnt/chroot/$2
-                /usr/bin/touch ./root/$3
-                /usr/bin/groot
-                /usr/bin/rm ./root/$3
+                case $4 in
+                        alpine)
+                                /mnt/chroot/$2/enter-chroot
+                                ;;
+                        *)
+                                cd /mnt/chroot/$2
+                                /usr/bin/touch ./root/$3
+                                /usr/bin/groot
+                                /usr/bin/rm ./root/$3
+                                ;;
+                esac
                 ;;
         *)
                 echo "-create <base> <name>, -enter <chroot name> <tmp file>"
