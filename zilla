@@ -53,6 +53,7 @@ case $1 in
                 /usr/bin/cp /mnt/dist-data/ubuntu/sources.list /mnt/chroot/$2/etc/apt/sources.list
                 /usr/bin/cp /mnt/dist-data/ubuntu/.bashrc /mnt/chroot/$2/root/.bashrc
                 ln -s /mnt/chroot/$2 /var/lib/machines/$2
+                cp /mnt/dist-data/ubuntu/container.nspawn /etc/systemd/nspawn/$2.nspawn
                 systemd-nspawn -D ./$2
 		;;
         -enter-systemd)
