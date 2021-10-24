@@ -5,6 +5,10 @@
 # To enter most chroots: zilla -enter name temp_file
 # To enter chroots with special edge cases (ex Alpine): zilla -enter name temp_file distro
 
+#Note this is a security risk, but going to assume your systemd container is secure
+#Main purpose of zilla is to run other Linux varients or contain dependencies on top of your distro of choice not to serve as a secure container
+export SYSTEMD_SECCOMP=0
+
 case $1 in
         -create)
                 case $2 in
@@ -44,7 +48,22 @@ case $1 in
                                 ;;
                 esac
                 ;;
-        *)
-                echo "-create <base> <name>, -enter <chroot name> <tmp file>"
+        -create-systemd)
+		/usr/bin/debootstrap --include=systemd-container focal /mnt/chroot/$2 http://archive.ubuntu.com/ubuntu/
+                /usr/bin/cp /mnt/dist-data/ubuntu/sources.list /mnt/chroot/$2/etc/apt/sources.list
+                /usr/bin/cp /mnt/dist-data/ubuntu/.bashrc /mnt/chroot/$2/root/.bashrc
+                ln -s /mnt/chroot/$2 /var/lib/machines/$2
+                systemd-nspawn -D ./$2
+		;;
+        -enter-systemd)
+                cd /mnt/chroot/
+                /usr/bin/touch ./$2/root/$3
+                systemd-nspawn --machine=multipass -b -D ./$2 &
+                sleep 10
+                sudo machinectl shell root@multipass
+                rm ./$2/root/$3
                 ;;
+        *)
+                echo "-create <base> <name>, -enter <chroot name> <tmp file>, -create-systemd <name>, -enter-systemd <name> <tmp file>"
+		;;
 esac
