@@ -59,9 +59,9 @@ case $1 in
         -enter-systemd)
                 cd /mnt/chroot/
                 /usr/bin/touch ./$2/root/$3
-                systemd-nspawn --machine=multipass -b -D ./$2 &
+                systemd-nspawn --machine=$2 -b -D ./$2 &
                 sleep 10
-                sudo machinectl shell root@multipass
+                sudo machinectl shell root@$2
                 rm ./$2/root/$3
                 ;;
         *)
