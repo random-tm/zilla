@@ -11,7 +11,6 @@ INITFILE=/root/init
 UPGRADEFILE=/root/upgrade
 
 if test -f "$INITFILE"; then
-    echo "nameserver 8.8.8.8" > /etc/resolv.conf
     apt update
     apt upgrade -y
     apt install apt-utils
