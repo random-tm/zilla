@@ -1,11 +1,8 @@
 #!/bin/bash
 
-# Usage (temp_file is used so you can execute different commands automatically when entering chroot)
-# To create: zilla -create disto name
-# To enter most chroots: zilla -enter name temp_file
-# To enter chroots with special edge cases (ex Alpine): zilla -enter name temp_file distro
+# Usage zilla -create-systemd\-enter-systemd container-name
 
-# Requires mkchroot, debootstrap, groot (https://github.com/teejee2008/groot)
+# Requires debootstrap
 
 #Note this is a security risk, but going to assume your systemd container is secure
 #Main purpose of zilla is to run other Linux varients or contain dependencies on top of your distro of choice not to serve as a secure container
@@ -17,60 +14,21 @@ UBUNTU_VERSION=focal
 
 case $1 in
         -create)
-                case $2 in
-                        ubuntu)
-                                /usr/bin/debootstrap --variant=buildd $UBUNTU_VERSION $CHROOT_LOCATION/$3 http://archive.ubuntu.com/ubuntu/
-                                /usr/bin/cp $DIST_DATA_LOCATION/ubuntu/sources.list $CHROOT_LOCATION/$3/etc/apt/sources.list
-                                /usr/bin/cp $DIST_DATA_LOCATION/ubuntu/.bashrc $CHROOT_LOCATION/$3/root/.bashrc
-                                ;;
-                        alpine)
-                                cd /mnt/chroot/
-                                sudo alpine-chroot-install -d /mnt/chroot/$3 -p build-base -p cmake
-                                ;;
-                        arch)
-                                CHROOT=/mnt/chroot/$3
-                                /usr/bin/mkchroot $CHROOT base-devel
-                                /usr/bin/rm $3.lock
-                                /usr/bin/cp $DIST_DATA_LOCATION/arch/.bashrc $CHROOT_LOCATION/$3/root/.bashrc
-                                /usr/bin/cp $DIST_DATA_LOCATION/arch/pacman.conf $CHROOT_LOCATION/$3/etc/pacman.conf
-                                /usr/bin/cp $DIST_DATA_LOCATION/arch/sudoers $CHROOT_LOCATION/$3/etc/sudoers
-                                /usr/bin/cp $DIST_DATA_LOCATION/arch/.bash_profile $CHROOT_LOCATION/$3/root/.bash_profile
-                                cd $CHROOT_LOCATION/$3/usr/local/bin
-                                /usr/bin/wget https://raw.githubusercontent.com/FriedMicro/frost/main/frost
-                                /usr/bin/chmod +x frost
-                                ;;
-                esac
-                ;;
-        -enter)
-                case $4 in
-                        alpine)
-                                $CHROOT_LOCATION/$2/enter-chroot
-                                ;;
-                        *)
-                                cd $CHROOT_LOCATION/$2
-                                /usr/bin/touch ./root/$3
-                                /usr/bin/groot
-                                /usr/bin/rm ./root/$3
-                                ;;
-                esac
-                ;;
-        -create-systemd)
-		/usr/bin/debootstrap --include=systemd-container $UBUNTU_VERSION $CHROOT_LOCATION/$2 http://archive.ubuntu.com/ubuntu/
-                /usr/bin/cp $DIST_DATA_LOCATION/ubuntu/sources.list $CHROOT_LOCATION/$2/etc/apt/sources.list
+                /usr/bin/debootstrap --components=main,universe,multiverse,restricted --include=systemd-container,dbus $UBUNTU_VERSION $CHROOT_LOCATION/$2 http://archive.ubuntu.com/ubuntu/
                 /usr/bin/cp $DIST_DATA_LOCATION/ubuntu/.bashrc $CHROOT_LOCATION/$2/root/.bashrc
                 ln -s $CHROOT_LOCATION/$2 /var/lib/machines/$2
-                cp /mnt/dist-data/ubuntu/container.nspawn /etc/systemd/nspawn/$2.nspawn
-                systemd-nspawn -D ./$2
-		;;
-        -enter-systemd)
+                mkdir /etc/systemd/nspawn 2>/dev/null
+                cp $DIST_DATA_LOCATION/ubuntu/container.nspawn /etc/systemd/nspawn/$2.nspawn
+                zilla -enter-systemd $2 init
+                ;;
+        -enter)
                 cd $CHROOT_LOCATION/
                 /usr/bin/touch ./$2/root/$3
-                systemd-nspawn --machine=multipass -b -D ./$2 &
+                systemd-nspawn -D ./$2 --machine=$2 --bind=/dev/nvidia0
                 sleep 10
-                sudo machinectl shell root@multipass
                 rm ./$2/root/$3
                 ;;
         *)
-                echo "-create <base> <name>, -enter <chroot name> <tmp file>, -create-systemd <name>, -enter-systemd <name> <tmp file>"
-		;;
+                echo "-create-systemd <name>, -enter-systemd <name> <tmp file>"
+                ;;
 esac

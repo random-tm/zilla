@@ -6,7 +6,13 @@ export PATH=$PATH:/usr/local/sbin/
 export PATH=$PATH:/usr/sbin/
 export PATH=$PATH:/sbin
 
-#FILE=/root/curarun
+chattr -i /etc/resolv.conf
+rm -rf /etc/resolv.conf
+# Change this to the nameserver you need
+echo "nameserver 192.168.1.43" > /etc/resolv.conf
+chattr +i /etc/resolv.conf
+
+FILE=/root/steam
 INITFILE=/root/init
 UPGRADEFILE=/root/upgrade
 
@@ -18,11 +24,9 @@ if test -f "$INITFILE"; then
     apt install wget
     apt install nano
     apt install software-properties-common
-    add-apt-repository ppa:graphics-drivers/ppa -y
     sleep 5
     apt update
     apt upgrade -y
-    apt install nvidia-driver-470
     adduser neo
     usermod -aG sudo neo
 fi
@@ -33,6 +37,6 @@ if test -f "$UPGRADEFILE"; then
     exit
 fi
 
-#if test -f "$FILE"; then
-#    sudo -H -u neo bash -c '/home/neo/Ultimaker_Cura-4.7.1.AppImage'
-#fi
+if test -f "$FILE"; then
+    sudo -u neo steam
+fi
