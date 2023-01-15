@@ -10,7 +10,7 @@ export SYSTEMD_SECCOMP=0
 
 CHROOT_LOCATION=/mnt/md0/chroots
 DIST_DATA_LOCATION=/mnt/md0/custom-software/dist-data
-UBUNTU_VERSION=focal
+UBUNTU_VERSION=jammy
 
 case $1 in
         -create)
@@ -27,6 +27,15 @@ case $1 in
                 systemd-nspawn -D ./$2 --machine=$2 --bind=/dev/nvidia0
                 sleep 10
                 rm ./$2/root/$3
+                ;;
+        -delete)
+                cd $CHROOT_LOCATION/
+                chattr -i $2/etc/resolv.conf
+                rm -rf $2
+                cd /var/lib/machines
+                rm $2
+                cd /etc/systemd/nspawn/
+                rm $2.nspawn
                 ;;
         *)
                 echo "-create-systemd <name>, -enter-systemd <name> <tmp file>"
